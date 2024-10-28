@@ -70,11 +70,18 @@ class Liberal extends OaiCacheBase {
             ':entity_id' => $entity_id,
             ':set_id' => $entity_type . ':' . $entity_id,
           ];
-          $rebuild = \Drupal::database()->query(
-                "SELECT * FROM {rest_oai_pmh_record} r, {rest_oai_pmh_set} s
-            WHERE (s.entity_type = :entity_type AND s.set_id = :set_id)
-              OR (r.entity_type = :entity_type AND r.entity_id = :entity_id)
-  	        LIMIT 1", $d_args
+          $rebuild = \Drupal::database()->query(<<<EOQ
+SELECT 1
+FROM {rest_oai_pmh_record} r
+WHERE (r.entity_type = :entity_type AND r.entity_id = :entity_id)
+UNION ALL
+SELECT 1
+FROM {rest_oai_pmh_set} s
+WHERE (s.entity_type = :entity_type AND s.set_id = :set_id)
+LIMIT 1
+EOQ
+
+                , $d_args
             )->fetchField();
           if ($rebuild) {
             rest_oai_pmh_cache_views();

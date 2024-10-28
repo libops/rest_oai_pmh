@@ -409,11 +409,17 @@ function rest_oai_pmh_is_valid_entity_type($entity_type) {
   $d_args = [
     ':entity_type' => $entity_type,
   ];
-  $exists = \Drupal::database()->query("SELECT 1
-    FROM {rest_oai_pmh_record} r, {rest_oai_pmh_set} s
-    WHERE s.entity_type = :entity_type
-      OR r.entity_type = :entity_type
-    LIMIT 1", $d_args)->fetchField();
+  $exists = \Drupal::database()->query(<<<EOQ
+SELECT 1
+FROM {rest_oai_pmh_record} r
+WHERE r.entity_type = :entity_type
+UNION ALL
+SELECT 1
+FROM {rest_oai_pmh_set} s
+WHERE s.entity_type = :entity_type
+LIMIT 1
+EOQ
+    , $d_args)->fetchField();
 
   return $exists === '1';
 }
