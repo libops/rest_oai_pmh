@@ -10,6 +10,7 @@ use Drupal\Core\Url;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Queue\SuspendQueueException;
+use Drupal\Core\Utility\Error;
 
 /**
  * Implements hook_help().
@@ -366,10 +367,12 @@ function rest_oai_pmh_process_queue($item) {
   }
   catch (SuspendQueueException $e) {
     $queue->releaseItem($item);
-    watchdog_exception('rest_oai_pmh', $e);
+    $logger = \Drupal::logger('rest_oai_pmh');
+    Error::logException($logger, $e);
   }
   catch (\Exception $e) {
-    watchdog_exception('rest_oai_pmh', $e);
+    $logger = \Drupal::logger('rest_oai_pmh');
+    Error::logException($logger, $e);
   }
 }
 

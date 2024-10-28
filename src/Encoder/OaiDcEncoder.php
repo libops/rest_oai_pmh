@@ -35,7 +35,7 @@ if (floatval(\Drupal::VERSION) < 10.0) {
     /**
      * {@inheritdoc}
      */
-    public function supportsDecoding($format) {
+    public function supportsDecoding($format): bool {
       return in_array($format, [$this->format, 'form']);
     }
 
