@@ -42,6 +42,11 @@ function rest_oai_pmh_schema() {
       ],
     ],
     'primary key' => ['entity_type', 'entity_id'],
+    'indexes' => [
+      'entity_type' => ['entity_type'],
+      'created_ts' => ['created'],
+      'changed_ts' => ['changed'],
+    ],
   ];
 
   $schema['rest_oai_pmh_set'] = [
@@ -83,6 +88,9 @@ function rest_oai_pmh_schema() {
       ],
     ],
     'primary key' => ['set_id'],
+    'indexes' => [
+      'entity_type' => ['entity_type'],
+    ],
   ];
 
   $schema['rest_oai_pmh_member'] = [
@@ -107,6 +115,11 @@ function rest_oai_pmh_schema() {
       ],
     ],
     'primary key' => ['entity_type', 'entity_id', 'set_id'],
+    'indexes' => [
+      'entity_type' => ['entity_type'],
+      'entity_target' => ['entity_type', 'entity_id'],
+      'set_id' => ['set_id'],
+    ],
   ];
 
   return $schema;
@@ -214,4 +227,89 @@ function rest_oai_pmh_update_8006() {
   }
   $config->set('metadata_map_plugins', $new_map_plugin_config);
   $config->save();
+}
+
+/**
+ * Add some misc indexes.
+ */
+function rest_oai_pmh_update_8007() {
+  // A copy of the schema at this point in time, chopped down to only the
+  // relevant fields so such can be referenced when adding the indexes.
+  $schema = [];
+  $schema['rest_oai_pmh_record'] = [
+    'fields' => [
+      'entity_type' => [
+        'description' => 'The entity id of the record',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ],
+      'created' => [
+        'description' => 'A timestamp indicating when the record was created',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'changed' => [
+        'description' => 'A timestamp indicating when the record was last changed',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+    ],
+  ];
+  $schema['rest_oai_pmh_set'] = [
+    'fields' => [
+      'entity_type' => [
+        'description' => 'The entity type of the set',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ],
+    ],
+  ];
+  $schema['rest_oai_pmh_member'] = [
+    'fields' => [
+      'entity_type' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ],
+      'entity_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'set_id' => [
+        'type' => 'varchar',
+        'length' => 65,
+        'not null' => TRUE,
+      ],
+    ],
+  ];
+
+  // The new indexes to add.
+  $indexes = [
+    'rest_oai_pmh_record' => [
+      'entity_type' => ['entity_type'],
+      'created_ts' => ['created'],
+      'changed_ts' => ['changed'],
+    ],
+    'rest_oai_pmh_member' => [
+      'entity_type' => ['entity_type'],
+      'entity_target' => ['entity_type', 'entity_id'],
+      'set_id' => ['set_id'],
+    ],
+    'rest_oai_pmh_set' => [
+      'entity_type' => ['entity_type'],
+    ],
+  ];
+  $schema_service = Database::getConnection()->schema();
+
+  foreach ($indexes as $table => $idx) {
+    foreach ($idx as $name => $info) {
+      $schema_service->addIndex($table, $name, $info, $schema[$table]);
+    }
+  }
+
 }
