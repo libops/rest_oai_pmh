@@ -83,7 +83,7 @@ EOQ
 
                 , $d_args
             )->fetchField();
-          if ($rebuild) {
+          if ($rebuild || $op == 'insert') {
             rest_oai_pmh_cache_views();
           }
         }
