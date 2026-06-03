@@ -469,6 +469,14 @@ class OaiPmh extends ResourceBase {
       $this->oaiEntity = $entity;
       $identifier = $this->buildIdentifier($entity);
       $this->loadEntity($identifier, TRUE);
+      // The cache table can reference an entity the current (anonymous) user
+      // cannot view, or one that has since been deleted. In both cases
+      // loadEntity() sets $this->entity to FALSE. Skip the record instead of
+      // calling getHeaderById() on FALSE, which fatals. This mirrors the FALSE
+      // handling getRecord() already performs for the GetRecord verb.
+      if (empty($this->entity)) {
+        continue;
+      }
       $this->response[$this->verb]['header'][] = $this->getHeaderById($identifier);
     }
     if (empty($this->response[$this->verb]['header'])) {
@@ -486,6 +494,14 @@ class OaiPmh extends ResourceBase {
       $this->oaiEntity = $entity;
       $identifier = $this->buildIdentifier($entity);
       $this->loadEntity($identifier, TRUE);
+      // The cache table can reference an entity the current (anonymous) user
+      // cannot view, or one that has since been deleted. In both cases
+      // loadEntity() sets $this->entity to FALSE. Skip the record instead of
+      // calling getRecordById() on FALSE, which fatals. This mirrors the FALSE
+      // handling getRecord() already performs for the GetRecord verb.
+      if (empty($this->entity)) {
+        continue;
+      }
       $this->response[$this->verb]['record'][] = $this->getRecordById($identifier);
     }
     if (empty($this->response[$this->verb]['record'])) {
